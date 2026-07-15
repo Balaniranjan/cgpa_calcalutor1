@@ -27,7 +27,52 @@ const GradePointMap = {
   'Absent': 0
 };
 
-// Helper methods to read/write JSON data safely
+// Supabase Cloud Storage Sync Helpers
+async function syncFromSupabase() {
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('cgpa_app_data')
+      .select('*');
+    
+    if (!error && data && data.length > 0) {
+      data.forEach(item => {
+        if (item.key_name && item.payload) {
+          localStorage.setItem(item.key_name, JSON.stringify(item.payload));
+        }
+      });
+      console.log('Cross-device data synced from Supabase cloud.');
+    }
+  } catch (err) {
+    console.warn('Supabase cloud sync notice:', err.message || err);
+  }
+}
+
+async function syncToSupabase(key, data) {
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+  if (key === StorageKeys.ACTIVE_SESSION || key === StorageKeys.THEME) return;
+  try {
+    await supabaseClient
+      .from('cgpa_app_data')
+      .upsert({ key_name: key, payload: data }, { onConflict: 'key_name' });
+  } catch (err) {
+    console.warn('Supabase push notice:', err.message || err);
+  }
+}
+
+async function syncRemoveFromSupabase(key) {
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+  try {
+    await supabaseClient
+      .from('cgpa_app_data')
+      .delete()
+      .eq('key_name', key);
+  } catch (err) {
+    console.warn('Supabase delete notice:', err.message || err);
+  }
+}
+
+// Helper methods to read/write JSON data safely with Supabase Cloud Sync
 const DB = {
   get(key) {
     try {
@@ -42,6 +87,7 @@ const DB = {
   set(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data));
+      syncToSupabase(key, data);
       return true;
     } catch (e) {
       console.error(`Error writing key ${key} to LocalStorage:`, e);
@@ -51,11 +97,12 @@ const DB = {
 
   remove(key) {
     localStorage.removeItem(key);
+    syncRemoveFromSupabase(key);
   }
 };
 
 /**
- * Initializes standard default seed data into Local Storage if not present.
+ * Initializes standard default seed data into Local Storage & Supabase if not present.
  */
 function initSeedData() {
   // 1. Admin Account - Auto-sync if credentials in code are updated
@@ -220,5 +267,6 @@ function initSeedData() {
   }
 }
 
-// Execute Seed Data on Load
+// Execute Seed Data & Cloud Sync on Load
 initSeedData();
+syncFromSupabase();
