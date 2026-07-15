@@ -7,9 +7,12 @@ const Auth = {
   SESSION_KEY: 'cgpa_user_session',
 
   /**
-   * Authenticate Admin User
+   * Authenticate Admin User (Async Cloud Synced)
    */
-  loginAdmin(username, password) {
+  async loginAdmin(username, password) {
+    if (typeof syncFromSupabase === 'function') {
+      await syncFromSupabase();
+    }
     const admin = DB.get(StorageKeys.ADMIN);
     if (!admin) return { success: false, message: 'Admin account not configured.' };
 
@@ -30,9 +33,12 @@ const Auth = {
   },
 
   /**
-   * Authenticate Student User by Username or Register Number
+   * Authenticate Student User by Username or Register Number (Async Cloud Synced)
    */
-  loginStudent(identifier, password) {
+  async loginStudent(identifier, password) {
+    if (typeof syncFromSupabase === 'function') {
+      await syncFromSupabase();
+    }
     const students = DB.get(StorageKeys.STUDENTS) || [];
     const target = identifier.trim().toLowerCase();
 
@@ -41,7 +47,7 @@ const Auth = {
     );
 
     if (!student) {
-      return { success: false, message: 'Student account not found.' };
+      return { success: false, message: 'Student account not found on cloud database.' };
     }
 
     if (student.password === password) {

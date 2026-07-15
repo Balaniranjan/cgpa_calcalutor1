@@ -60,12 +60,12 @@
       }
     });
 
-    document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const user = document.getElementById('admin-username').value;
       const pass = document.getElementById('admin-password').value;
 
-      const res = Auth.loginAdmin(user, pass);
+      const res = await Auth.loginAdmin(user, pass);
       if (res.success) {
         showToast('Login successful! Redirecting...', 'success');
         setTimeout(() => {

@@ -3,7 +3,7 @@
  * Covers Dashboard Metrics, Subject CRUD, Student CRUD, Department Setup, and Performance Analytics Reports.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Guard Admin Pages
   const adminPages = ['admin-dashboard.html', 'subjects.html', 'students.html', 'reports.html'];
   const currentPage = window.location.pathname.split('/').pop();
@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (adminPages.includes(currentPage)) {
     const adminUser = Auth.requireAuth('admin');
     if (!adminUser) return;
+
+    if (typeof syncFromSupabase === 'function') {
+      await syncFromSupabase();
+    }
 
     // Render User Header Profile
     const adminNameEl = document.getElementById('admin-display-name');

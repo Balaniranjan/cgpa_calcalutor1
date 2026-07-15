@@ -8,12 +8,16 @@ let currentStudent = null;
 let assignedSubjects = [];
 let studentGrades = {};
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const currentPage = window.location.pathname.split('/').pop();
 
   if (currentPage === 'student-dashboard.html') {
     currentStudent = Auth.requireAuth('student');
     if (!currentStudent) return;
+
+    if (typeof syncFromSupabase === 'function') {
+      await syncFromSupabase();
+    }
 
     initStudentDashboard();
   }
