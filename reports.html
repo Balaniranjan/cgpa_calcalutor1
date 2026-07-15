@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Performance Analytics - Admin Portal</title>
+  <meta name="description" content="Department CGPA Reports, Top Rankers, and Export Capabilities.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🛡️</div>
+        <div class="brand-text">
+          <h2>Admin Panel</h2>
+          <p>CGPA Management</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-label">Main Navigation</div>
+        <a href="admin-dashboard.html" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard Overview
+        </a>
+        <a href="subjects.html" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          Subject Management
+        </a>
+        <a href="students.html" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Student Accounts
+        </a>
+        <a href="reports.html" class="nav-item active">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+          Analytics & Reports
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="user-avatar">A</div>
+          <div class="user-info">
+            <h4 id="admin-display-name">System Administrator</h4>
+            <p>Admin Role</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+      
+      <!-- Top Navigation Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn">☰</button>
+          <div class="header-title">
+            <h1>Analytics & Reports</h1>
+            <p>Student CGPA performance analysis & export suite</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme"></button>
+          <button onclick="Auth.logout()" class="logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <!-- Printable Document Header (Appears only on window.print) -->
+      <div class="print-only-header">
+        <h1>Department Academic Performance Report</h1>
+        <p>University CGPA Management System • Date: <span id="report-print-date"></span></p>
+      </div>
+
+      <!-- Page Content -->
+      <main class="content-area">
+
+        <div class="section-header">
+          <h2>Department Academic Analytics</h2>
+          <div style="display: flex; gap: 0.75rem;">
+            <button id="export-excel-btn" class="btn btn-success btn-sm">
+              <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              Export Excel (CSV)
+            </button>
+            <button id="print-report-btn" class="btn btn-primary btn-sm">
+              <svg viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+              Print / Save PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Top Rankers Section -->
+        <div style="margin-bottom: 2rem;">
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--text-primary);">🏆 Top Rank Holders</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Student Name</th>
+                  <th>Register Number</th>
+                  <th>Department</th>
+                  <th>CGPA</th>
+                </tr>
+              </thead>
+              <tbody id="rankers-tbody">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- All Student Performance Report Table -->
+        <div>
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--text-primary);">📋 Detailed Student Performance Master Sheet</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Register No.</th>
+                  <th>Student Name</th>
+                  <th>Department</th>
+                  <th>Year / Semester</th>
+                  <th>Total Credits</th>
+                  <th>CGPA</th>
+                  <th>Academic Status</th>
+                </tr>
+              </thead>
+              <tbody id="all-report-tbody">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    document.getElementById('report-print-date').textContent = new Date().toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  </script>
+</body>
+</html>

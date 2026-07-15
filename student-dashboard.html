@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal - Department CGPA Calculator</title>
+  <meta name="description" content="Calculate and manage your weighted CGPA, grade selection, and official statement printouts.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🎓</div>
+        <div class="brand-text">
+          <h2>Student Portal</h2>
+          <p>CGPA Calculator</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-label">Main Navigation</div>
+        <a href="student-dashboard.html" class="nav-item active">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          Grade Calculator
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="user-avatar" id="student-avatar">S</div>
+          <div class="user-info">
+            <h4 id="student-display-name">Loading...</h4>
+            <p id="student-display-regno">Reg Number</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <div class="main-wrapper">
+      
+      <!-- Top Navigation Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn">☰</button>
+          <div class="header-title">
+            <h1>Student Grade Calculator</h1>
+            <p>Select semester course grades and compute weighted CGPA</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme"></button>
+          <button onclick="Auth.logout()" class="logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <!-- Printable Mark Sheet Statement Header (Visible only on Print/PDF) -->
+      <div class="print-only-header">
+        <h1>Official Academic Grade Statement</h1>
+        <p>Department CGPA Calculation Report • Generated on <span id="print-date"></span></p>
+      </div>
+
+      <!-- Page Content Area -->
+      <main class="content-area">
+
+        <!-- Student Profile Summary Banner Card -->
+        <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--bg-card) 0%, var(--primary-light) 100%);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span class="badge badge-primary" style="margin-bottom: 0.5rem;">Academic Profile</span>
+              <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.25rem;">Welcome, <span id="student-display-name-banner">Student</span>!</h2>
+              <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                Department of <strong id="student-display-dept">CSE</strong> &bull; 
+                <span id="student-display-year">3rd Year</span> &bull; 
+                <span id="student-display-sem">Semester 5</span>
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+              <button id="print-result-btn" class="btn btn-secondary btn-sm">
+                <svg viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                Print Grade Sheet
+              </button>
+              <button id="download-pdf-btn" class="btn btn-primary btn-sm">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Stat Metrics Grid Cards -->
+        <div class="stats-grid">
+          
+          <div class="card cgpa-hero-card">
+            <div class="card-stat">
+              <div class="stat-info">
+                <span>Final CGPA</span>
+                <h3 id="stat-final-cgpa">0.00</h3>
+              </div>
+              <div class="stat-icon" style="background: rgba(255,255,255,0.2);">🏆</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-stat">
+              <div class="stat-info">
+                <span>Total Credits</span>
+                <h3 id="stat-total-credits">0</h3>
+              </div>
+              <div class="stat-icon primary">📖</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-stat">
+              <div class="stat-info">
+                <span>Total Credit Points</span>
+                <h3 id="stat-total-points">0</h3>
+              </div>
+              <div class="stat-icon success">📊</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-stat">
+              <div class="stat-info">
+                <span>Completed Subjects</span>
+                <h3 id="stat-completed-subs">0 / 0</h3>
+              </div>
+              <div class="stat-icon accent">✅</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Subject Selection & Grade Table -->
+        <div class="section-header" style="margin-top: 1.5rem;">
+          <div>
+            <h2>Assigned Subjects & Grade Selection</h2>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+              Select semester to view and calculate previous marks & GPA:
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <select id="student-sem-selector" class="select-control" style="font-weight: 600; min-width: 210px;">
+              <!-- Dynamically populated -->
+            </select>
+            <button id="recalculate-btn" class="btn btn-secondary btn-sm">Recalculate</button>
+            <button id="reset-grades-btn" class="btn btn-danger btn-sm">Reset Grades</button>
+            <button id="save-grades-btn" class="btn btn-primary btn-sm">Save Grades</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject Code</th>
+                <th>Subject Name</th>
+                <th>Credits</th>
+                <th style="width: 260px;">Selected Grade</th>
+                <th>Credit Points Earned</th>
+              </tr>
+            </thead>
+            <tbody id="student-grade-tbody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/student.js"></script>
+  <script>
+    // Sync header profile names
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = Auth.getCurrentUser();
+      if (user) {
+        document.getElementById('student-display-name-banner').textContent = user.name;
+        document.getElementById('student-avatar').textContent = user.name.charAt(0).toUpperCase();
+        document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+      }
+    });
+  </script>
+</body>
+</html>

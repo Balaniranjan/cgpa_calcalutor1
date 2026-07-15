@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subject Management - Admin Portal</title>
+  <meta name="description" content="Manage Academic Subject Catalog and Credit System.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🛡️</div>
+        <div class="brand-text">
+          <h2>Admin Panel</h2>
+          <p>CGPA Management</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-label">Main Navigation</div>
+        <a href="admin-dashboard.html" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard Overview
+        </a>
+        <a href="subjects.html" class="nav-item active">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          Subject Management
+        </a>
+        <a href="students.html" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Student Accounts
+        </a>
+        <a href="reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+          Analytics & Reports
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="user-avatar">A</div>
+          <div class="user-info">
+            <h4 id="admin-display-name">System Administrator</h4>
+            <p>Admin Role</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+      
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn">☰</button>
+          <div class="header-title">
+            <h1>Subject Management</h1>
+            <p>Add, edit, delete, and filter course subject credits</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme"></button>
+          <button onclick="Auth.logout()" class="logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="content-area">
+
+        <!-- Search & Filter Bar -->
+        <div class="table-controls">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="subject-search-input" placeholder="Search by Code or Name...">
+          </div>
+
+          <div class="filter-group">
+            <select id="sub-dept-filter" class="select-control"></select>
+            <select id="sub-year-filter" class="select-control"></select>
+            <select id="sub-sem-filter" class="select-control"></select>
+            <button class="btn btn-primary" onclick="openModal('subject-modal')">+ Add Subject</button>
+          </div>
+        </div>
+
+        <!-- Subjects Data Table -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject Code</th>
+                <th>Subject Name</th>
+                <th>Credits</th>
+                <th>Department</th>
+                <th>Year</th>
+                <th>Semester</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subject-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- Add / Edit Subject Modal -->
+  <div id="subject-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Subject Configuration Form</h3>
+        <button class="modal-close-btn" onclick="resetSubjectForm()">&times;</button>
+      </div>
+      <form id="subject-form">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="subject-code">Subject Code <span class="required">*</span></label>
+              <input type="text" id="subject-code" class="form-control" placeholder="e.g. CS8591" required>
+            </div>
+            <div class="form-group">
+              <label for="subject-credits">Credits <span class="required">*</span></label>
+              <input type="number" id="subject-credits" class="form-control" placeholder="e.g. 4" min="1" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="subject-name">Subject Name <span class="required">*</span></label>
+            <input type="text" id="subject-name" class="form-control" placeholder="e.g. Computer Networks" required>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="subject-dept">Department <span class="required">*</span></label>
+              <select id="subject-dept" class="select-control" style="width:100%;" required></select>
+            </div>
+            <div class="form-group">
+              <label for="subject-year">Academic Year <span class="required">*</span></label>
+              <select id="subject-year" class="select-control" style="width:100%;" required></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="subject-sem">Semester <span class="required">*</span></label>
+            <select id="subject-sem" class="select-control" style="width:100%;" required></select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="reset-subject-btn" class="btn btn-secondary">Reset / Cancel</button>
+          <button type="submit" id="save-subject-btn" class="btn btn-primary">Save Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

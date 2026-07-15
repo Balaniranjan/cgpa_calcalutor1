@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login - Department CGPA Calculator</title>
+  <meta name="description" content="Student Authentication Portal for Department CGPA Calculator Management System.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-icon">🎓</div>
+        <h2>Student Authentication</h2>
+        <p>Enter your Username or Register Number to access your CGPA portal.</p>
+      </div>
+
+      <form id="student-login-form">
+        <div class="form-group">
+          <label for="student-identifier">Username or Register Number <span class="required">*</span></label>
+          <input type="text" id="student-identifier" class="form-control" placeholder="e.g. alex or 312221104001" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label for="student-password">Password <span class="required">*</span></label>
+            <button type="button" onclick="openModal('forgot-modal')" style="background: none; border: none; color: var(--primary); font-size: 0.78rem; cursor: pointer; text-decoration: underline;">
+              Forgot Password?
+            </button>
+          </div>
+          <input type="password" id="student-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          Sign In to Student Portal
+        </button>
+      </form>
+
+      <!-- Default Seed Credentials Demo Hint -->
+      <div style="margin-top: 1.5rem; padding: 0.9rem; background-color: var(--primary-light); border-radius: var(--border-radius-md); font-size: 0.8rem; color: var(--text-secondary);">
+        <strong>Demo Student Accounts:</strong><br>
+        1. Username: <code>alex</code> | Reg: <code>312221104001</code> | Pass: <code>student123</code><br>
+        2. Username: <code>sophia</code> | Reg: <code>312221104002</code> | Pass: <code>student123</code>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <a href="index.html" style="font-size: 0.85rem; color: var(--text-secondary);">← Back to Landing Page</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Demo Modal -->
+  <div id="forgot-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Forgot Password Assistance</h3>
+        <button class="modal-close-btn" onclick="closeModal('forgot-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          For security reasons, student passwords are managed by your Department Administrator.
+        </p>
+        <div style="background-color: var(--primary-light); padding: 1rem; border-radius: var(--border-radius-md); font-size: 0.85rem; color: var(--text-primary);">
+          Please contact your Department Administrator with your Register Number to reset your password, or use the demo accounts listed on the login card.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('forgot-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/script.js"></script>
+  <script>
+    document.getElementById('student-login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const identifier = document.getElementById('student-identifier').value;
+      const pass = document.getElementById('student-password').value;
+
+      const res = Auth.loginStudent(identifier, pass);
+      if (res.success) {
+        showToast('Login successful! Welcome student...', 'success');
+        setTimeout(() => {
+          window.location.href = 'student-dashboard.html';
+        }, 800);
+      } else {
+        showToast(res.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>
