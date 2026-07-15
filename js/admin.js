@@ -87,7 +87,7 @@ function renderDepartmentSummaryTable(departments, students, subjects) {
   }).join('');
 }
 
-function handleAddDepartment() {
+async function handleAddDepartment() {
   const codeInput = document.getElementById('dept-code-input');
   const nameInput = document.getElementById('dept-name-input');
 
@@ -99,6 +99,7 @@ function handleAddDepartment() {
     return;
   }
 
+  if (typeof syncFromSupabase === 'function') await syncFromSupabase();
   const departments = DB.get(StorageKeys.DEPARTMENTS) || [];
   if (departments.some(d => d.code === code)) {
     showToast('Department Code already exists.', 'warning');
@@ -120,7 +121,8 @@ function handleAddDepartment() {
   initAdminDashboard();
 }
 
-function confirmDeleteDepartment(deptId) {
+async function confirmDeleteDepartment(deptId) {
+  if (typeof syncFromSupabase === 'function') await syncFromSupabase();
   const departments = DB.get(StorageKeys.DEPARTMENTS) || [];
   const dept = departments.find(d => d.id === deptId);
   if (!dept) return;
@@ -199,7 +201,7 @@ function renderSubjectTable() {
   `).join('');
 }
 
-function handleSaveSubject(e) {
+async function handleSaveSubject(e) {
   e.preventDefault();
   const code = document.getElementById('subject-code').value.trim().toUpperCase();
   const name = document.getElementById('subject-name').value.trim();
@@ -218,6 +220,7 @@ function handleSaveSubject(e) {
     return;
   }
 
+  if (typeof syncFromSupabase === 'function') await syncFromSupabase();
   let subjects = DB.get(StorageKeys.SUBJECTS) || [];
 
   // Check unique code (if creating or editing to a new code)
@@ -267,8 +270,9 @@ function editSubject(subjectId) {
   openModal('subject-modal');
 }
 
-function confirmDeleteSubject(subjectId) {
+async function confirmDeleteSubject(subjectId) {
   if (confirm('Are you sure you want to delete this subject?')) {
+    if (typeof syncFromSupabase === 'function') await syncFromSupabase();
     let subjects = DB.get(StorageKeys.SUBJECTS) || [];
     subjects = subjects.filter(s => s.id !== subjectId);
     DB.set(StorageKeys.SUBJECTS, subjects);
@@ -351,7 +355,7 @@ function renderStudentTable() {
   `).join('');
 }
 
-function handleSaveStudent(e) {
+async function handleSaveStudent(e) {
   e.preventDefault();
   const regNo = document.getElementById('student-regno').value.trim();
   const name = document.getElementById('student-name').value.trim();
@@ -366,6 +370,7 @@ function handleSaveStudent(e) {
     return;
   }
 
+  if (typeof syncFromSupabase === 'function') await syncFromSupabase();
   let students = DB.get(StorageKeys.STUDENTS) || [];
 
   // Uniqueness validation
@@ -423,8 +428,9 @@ function editStudent(studentId) {
   openModal('student-modal');
 }
 
-function confirmDeleteStudent(studentId) {
+async function confirmDeleteStudent(studentId) {
   if (confirm('Are you sure you want to delete this student account?')) {
+    if (typeof syncFromSupabase === 'function') await syncFromSupabase();
     let students = DB.get(StorageKeys.STUDENTS) || [];
     students = students.filter(s => s.id !== studentId);
     DB.set(StorageKeys.STUDENTS, students);
