@@ -95,6 +95,16 @@ const DB = {
     }
   },
 
+  setLocalOnly(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      console.error(`Error writing key ${key} to LocalStorage:`, e);
+      return false;
+    }
+  },
+
   remove(key) {
     localStorage.removeItem(key);
     syncRemoveFromSupabase(key);
@@ -116,12 +126,12 @@ function initSeedData() {
 
   const storedAdmin = DB.get(StorageKeys.ADMIN);
   if (!storedAdmin || storedAdmin.password !== codeAdmin.password || storedAdmin.username !== codeAdmin.username) {
-    DB.set(StorageKeys.ADMIN, codeAdmin);
+    DB.setLocalOnly(StorageKeys.ADMIN, codeAdmin);
   }
 
   // 2. Departments
   if (!DB.get(StorageKeys.DEPARTMENTS)) {
-    DB.set(StorageKeys.DEPARTMENTS, [
+    DB.setLocalOnly(StorageKeys.DEPARTMENTS, [
       { id: 'DEP01', name: 'Computer Science & Engineering', code: 'CSE' },
       { id: 'DEP02', name: 'Information Technology', code: 'IT' },
       { id: 'DEP03', name: 'Electronics & Communication', code: 'ECE' },
@@ -132,7 +142,7 @@ function initSeedData() {
 
   // 3. Academic Years
   if (!DB.get(StorageKeys.YEARS)) {
-    DB.set(StorageKeys.YEARS, [
+    DB.setLocalOnly(StorageKeys.YEARS, [
       { id: 'YR01', name: '1st Year' },
       { id: 'YR02', name: '2nd Year' },
       { id: 'YR03', name: '3rd Year' },
@@ -142,7 +152,7 @@ function initSeedData() {
 
   // 4. Semesters
   if (!DB.get(StorageKeys.SEMESTERS)) {
-    DB.set(StorageKeys.SEMESTERS, [
+    DB.setLocalOnly(StorageKeys.SEMESTERS, [
       { id: 'SEM01', name: 'Semester 1' },
       { id: 'SEM02', name: 'Semester 2' },
       { id: 'SEM03', name: 'Semester 3' },
@@ -156,7 +166,7 @@ function initSeedData() {
 
   // 5. Subjects Seed
   if (!DB.get(StorageKeys.SUBJECTS)) {
-    DB.set(StorageKeys.SUBJECTS, [
+    DB.setLocalOnly(StorageKeys.SUBJECTS, [
       // CSE 1st Year (Sem 1)
       { id: 'SUB001', code: 'HS8151', name: 'Communicative English', credits: 4, department: 'CSE', year: '1st Year', semester: 'Semester 1' },
       { id: 'SUB002', code: 'MA8151', name: 'Engineering Mathematics I', credits: 4, department: 'CSE', year: '1st Year', semester: 'Semester 1' },
@@ -198,7 +208,7 @@ function initSeedData() {
 
   // 6. Students Seed
   if (!DB.get(StorageKeys.STUDENTS)) {
-    DB.set(StorageKeys.STUDENTS, [
+    DB.setLocalOnly(StorageKeys.STUDENTS, [
       {
         id: 'STU001',
         registerNumber: '312221104001',
@@ -234,7 +244,7 @@ function initSeedData() {
 
   // 7. Initial Student Sample Grades
   if (!DB.get(StorageKeys.GRADES)) {
-    DB.set(StorageKeys.GRADES, {
+    DB.setLocalOnly(StorageKeys.GRADES, {
       'STU001': {
         // Sem 1
         'SUB001': 'O',
