@@ -132,7 +132,12 @@ function loadStudentData(selectedSem) {
       const allMarksheets = DB.get(StorageKeys.MARKSHEETS) || {};
       const studentMarksheets = allMarksheets[currentStudent.id] || {};
       if (studentMarksheets[targetSem]) {
-        uploadStatus.innerHTML = `<a href="${studentMarksheets[targetSem]}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>`;
+        uploadStatus.innerHTML = `
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <a href="${studentMarksheets[targetSem]}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>
+            <button onclick="handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+          </div>
+        `;
       } else {
         uploadStatus.innerHTML = `<span style="color: var(--text-muted);">No marksheet uploaded.</span>`;
       }
@@ -326,7 +331,12 @@ async function handleMarksheetUpload(e) {
     if (typeof showToast === 'function') showToast('Marksheet uploaded successfully!', 'success');
     
     if (uploadStatus) {
-      uploadStatus.innerHTML = `<a href="${publicUrl}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>`;
+      uploadStatus.innerHTML = `
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <a href="${publicUrl}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>
+          <button onclick="handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+        </div>
+      `;
     }
   } catch (err) {
     console.error('Upload Error:', err);
@@ -335,4 +345,57 @@ async function handleMarksheetUpload(e) {
   }
 
   fileInput.value = ''; // Reset input
+}
+
+async function handleDeleteMarksheet() {
+  if (!confirm('Are you sure you want to delete this marksheet?')) return;
+
+  const semSelector = document.getElementById('student-sem-selector');
+  const targetSem = semSelector ? semSelector.value : currentStudent.semester;
+  const uploadStatus = document.getElementById('marksheet-upload-status');
+
+  const allMarksheets = DB.get(StorageKeys.MARKSHEETS) || {};
+  const publicUrl = allMarksheets[currentStudent.id]?.[targetSem];
+
+  if (!publicUrl) return;
+
+  if (uploadStatus) uploadStatus.innerHTML = `<span style="color: var(--danger);">Deleting...</span>`;
+
+  try {
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+      throw new Error('Supabase client not initialized.');
+    }
+
+    // Extract filename from the URL
+    const urlParts = publicUrl.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+
+    // Delete from Supabase Storage
+    const { error } = await supabaseClient.storage
+      .from('marksheets')
+      .remove([fileName]);
+
+    if (error) throw error;
+
+    // Remove from DB
+    delete allMarksheets[currentStudent.id][targetSem];
+    DB.set(StorageKeys.MARKSHEETS, allMarksheets);
+    
+    if (typeof showToast === 'function') showToast('Marksheet deleted successfully.', 'info');
+    
+    if (uploadStatus) {
+      uploadStatus.innerHTML = `<span style="color: var(--text-muted);">No marksheet uploaded.</span>`;
+    }
+  } catch (err) {
+    console.error('Delete Error:', err);
+    if (typeof showToast === 'function') showToast('Delete failed: ' + err.message, 'error');
+    if (uploadStatus) {
+       uploadStatus.innerHTML = `
+         <div style="display: flex; gap: 0.75rem; align-items: center;">
+           <a href="${publicUrl}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>
+           <button onclick="handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+         </div>
+       `;
+    }
+  }
 }
