@@ -294,7 +294,7 @@ async function handleMarksheetUpload(e) {
   if (uploadStatus) uploadStatus.innerHTML = `<span style="color: var(--primary);">Uploading...</span>`;
 
   try {
-    if (!window.supabaseClient) throw new Error('Supabase client not initialized.');
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) throw new Error('Supabase client not initialized.');
 
     const fileName = `${currentStudent.id}_${targetSem.replace(/\s+/g, '')}_${Date.now()}.pdf`;
     
