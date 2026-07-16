@@ -302,6 +302,7 @@ function initStudentManagement() {
 
   // Search & Filters
   document.getElementById('student-search-input')?.addEventListener('input', renderStudentTable);
+  document.getElementById('stu-sort-filter')?.addEventListener('change', renderStudentTable);
   document.getElementById('stu-dept-filter')?.addEventListener('change', renderStudentTable);
   document.getElementById('stu-year-filter')?.addEventListener('change', renderStudentTable);
   document.getElementById('stu-sem-filter')?.addEventListener('change', renderStudentTable);
@@ -331,6 +332,17 @@ function renderStudentTable() {
     const matchesSem = !semFilter || stu.semester === semFilter;
     return matchesSearch && matchesDept && matchesYear && matchesSem;
   });
+
+  const sortFilter = document.getElementById('stu-sort-filter')?.value || 'none';
+  if (sortFilter === 'name_asc') {
+    students.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sortFilter === 'name_desc') {
+    students.sort((a, b) => b.name.localeCompare(a.name));
+  } else if (sortFilter === 'regno_asc') {
+    students.sort((a, b) => a.registerNumber.localeCompare(b.registerNumber));
+  } else if (sortFilter === 'regno_desc') {
+    students.sort((a, b) => b.registerNumber.localeCompare(a.registerNumber));
+  }
 
   if (students.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 2rem;">No student accounts found.</td></tr>`;

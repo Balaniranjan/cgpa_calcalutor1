@@ -122,6 +122,7 @@ function loadStudentData(selectedSem) {
   const uploadSection = document.getElementById('marksheet-upload-section');
   const uploadStatus = document.getElementById('marksheet-upload-status');
   const uploadInput = document.getElementById('marksheet-upload-input');
+  const uploadBtn = document.getElementById('upload-marksheet-btn');
   
   if (uploadSection) {
     if (targetSem === 'ALL') {
@@ -135,11 +136,13 @@ function loadStudentData(selectedSem) {
         uploadStatus.innerHTML = `
           <div style="display: flex; gap: 0.75rem; align-items: center;">
             <a href="${studentMarksheets[targetSem]}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>
-            <button onclick="handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+            <button onclick="window.handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete File</button>
           </div>
         `;
+        if (uploadBtn) uploadBtn.style.display = 'none';
       } else {
         uploadStatus.innerHTML = `<span style="color: var(--text-muted);">No marksheet uploaded.</span>`;
+        if (uploadBtn) uploadBtn.style.display = 'block';
       }
       if (uploadInput) uploadInput.value = ''; // reset input
     }
@@ -334,10 +337,12 @@ async function handleMarksheetUpload(e) {
       uploadStatus.innerHTML = `
         <div style="display: flex; gap: 0.75rem; align-items: center;">
           <a href="${publicUrl}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>
-          <button onclick="handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+          <button onclick="window.handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete File</button>
         </div>
       `;
     }
+    const uploadBtn = document.getElementById('upload-marksheet-btn');
+    if (uploadBtn) uploadBtn.style.display = 'none';
   } catch (err) {
     console.error('Upload Error:', err);
     if (typeof showToast === 'function') showToast('Upload failed: ' + err.message, 'error');
@@ -386,6 +391,8 @@ async function handleDeleteMarksheet() {
     if (uploadStatus) {
       uploadStatus.innerHTML = `<span style="color: var(--text-muted);">No marksheet uploaded.</span>`;
     }
+    const uploadBtn = document.getElementById('upload-marksheet-btn');
+    if (uploadBtn) uploadBtn.style.display = 'block';
   } catch (err) {
     console.error('Delete Error:', err);
     if (typeof showToast === 'function') showToast('Delete failed: ' + err.message, 'error');
@@ -393,9 +400,11 @@ async function handleDeleteMarksheet() {
        uploadStatus.innerHTML = `
          <div style="display: flex; gap: 0.75rem; align-items: center;">
            <a href="${publicUrl}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>
-           <button onclick="handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+           <button onclick="window.handleDeleteMarksheet()" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete File</button>
          </div>
        `;
     }
   }
 }
+
+window.handleDeleteMarksheet = handleDeleteMarksheet;
