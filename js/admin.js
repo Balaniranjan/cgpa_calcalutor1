@@ -347,6 +347,7 @@ function renderStudentTable() {
       <td><code>${stu.username}</code></td>
       <td>
         <div class="action-buttons">
+          <button class="btn btn-sm btn-info" onclick="viewStudentMarksheets('${stu.id}')">Docs</button>
           <button class="btn btn-sm btn-secondary" onclick="editStudent('${stu.id}')">Edit</button>
           <button class="btn btn-sm btn-danger" onclick="confirmDeleteStudent('${stu.id}')">Delete</button>
         </div>
@@ -451,6 +452,28 @@ function resetStudentForm() {
   const saveBtn = document.getElementById('save-student-btn');
   if (saveBtn) saveBtn.textContent = 'Create Student';
   closeModal('student-modal');
+}
+
+function viewStudentMarksheets(studentId) {
+  const allMarksheets = DB.get(StorageKeys.MARKSHEETS) || {};
+  const studentMarksheets = allMarksheets[studentId] || {};
+  const listContainer = document.getElementById('marksheets-list');
+  
+  if (!listContainer) return;
+  
+  const semesters = Object.keys(studentMarksheets);
+  if (semesters.length === 0) {
+    listContainer.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted); background: var(--bg-hover); border-radius: 4px;">No marksheets uploaded by this student yet.</div>`;
+  } else {
+    listContainer.innerHTML = semesters.map(sem => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-hover); border-radius: 4px; border: 1px solid var(--border-color);">
+        <strong>${sem}</strong>
+        <a href="${studentMarksheets[sem]}" target="_blank" class="btn btn-primary btn-sm">View PDF</a>
+      </div>
+    `).join('');
+  }
+  
+  openModal('marksheets-modal');
 }
 
 /* ==========================================================================

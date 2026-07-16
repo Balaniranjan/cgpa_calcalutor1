@@ -81,14 +81,6 @@
               </p>
             </div>
             <div style="display: flex; gap: 0.75rem;">
-              <button id="print-result-btn" class="btn btn-secondary btn-sm">
-                <svg viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                Print Grade Sheet
-              </button>
-              <button id="download-pdf-btn" class="btn btn-primary btn-sm">
-                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Download PDF
-              </button>
             </div>
           </div>
         </div>
@@ -153,6 +145,12 @@
             <button id="recalculate-btn" class="btn btn-secondary btn-sm">Recalculate</button>
             <button id="reset-grades-btn" class="btn btn-danger btn-sm">Reset Grades</button>
             <button id="save-grades-btn" class="btn btn-primary btn-sm">Save Grades</button>
+            
+            <div id="marksheet-upload-section" style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
+              <input type="file" id="marksheet-upload-input" accept=".pdf" style="display: none;">
+              <button id="upload-marksheet-btn" class="btn btn-primary btn-sm">Upload Marksheet</button>
+              <div id="marksheet-upload-status" style="font-size: 0.85rem; margin-left: 0.5rem;"></div>
+            </div>
           </div>
         </div>
 

@@ -11,6 +11,7 @@ const StorageKeys = {
   SUBJECTS: 'cgpa_subjects',
   STUDENTS: 'cgpa_students',
   GRADES: 'cgpa_grades',
+  MARKSHEETS: 'cgpa_marksheets',
   ACTIVE_SESSION: 'cgpa_active_session',
   THEME: 'cgpa_theme'
 };

@@ -53,8 +53,11 @@ function initStudentDashboard() {
 
   document.getElementById('save-grades-btn')?.addEventListener('click', saveGradesToStorage);
   document.getElementById('reset-grades-btn')?.addEventListener('click', resetGrades);
-  document.getElementById('print-result-btn')?.addEventListener('click', printMarkSheet);
-  document.getElementById('download-pdf-btn')?.addEventListener('click', printMarkSheet);
+
+  document.getElementById('upload-marksheet-btn')?.addEventListener('click', () => {
+    document.getElementById('marksheet-upload-input')?.click();
+  });
+  document.getElementById('marksheet-upload-input')?.addEventListener('change', handleMarksheetUpload);
 }
 
 function initSemesterSelector() {
@@ -114,6 +117,28 @@ function loadStudentData(selectedSem) {
 
   // Retrieve saved grades for this student
   studentGrades = allGrades[currentStudent.id] || {};
+
+  // Handle UI for Marksheet upload
+  const uploadSection = document.getElementById('marksheet-upload-section');
+  const uploadStatus = document.getElementById('marksheet-upload-status');
+  const uploadInput = document.getElementById('marksheet-upload-input');
+  
+  if (uploadSection) {
+    if (targetSem === 'ALL') {
+      uploadSection.style.display = 'none';
+    } else {
+      uploadSection.style.display = 'flex';
+      // Check if marksheet already uploaded
+      const allMarksheets = DB.get(StorageKeys.MARKSHEETS) || {};
+      const studentMarksheets = allMarksheets[currentStudent.id] || {};
+      if (studentMarksheets[targetSem]) {
+        uploadStatus.innerHTML = `<a href="${studentMarksheets[targetSem]}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>`;
+      } else {
+        uploadStatus.innerHTML = `<span style="color: var(--text-muted);">No marksheet uploaded.</span>`;
+      }
+      if (uploadInput) uploadInput.value = ''; // reset input
+    }
+  }
 }
 
 function renderSubjectGradeTable() {
@@ -235,6 +260,79 @@ function resetGrades() {
   }
 }
 
-function printMarkSheet() {
-  window.print();
+async function handleMarksheetUpload(e) {
+  const fileInput = e.target;
+  const semSelector = document.getElementById('student-sem-selector');
+  const targetSem = semSelector ? semSelector.value : currentStudent.semester;
+  const uploadStatus = document.getElementById('marksheet-upload-status');
+
+  if (targetSem === 'ALL') {
+    if (typeof showToast === 'function') showToast('Cannot upload marksheet for All Semesters. Please select a specific semester.', 'warning');
+    return;
+  }
+
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    return;
+  }
+
+  const file = fileInput.files[0];
+
+  // Validate PDF
+  if (file.type !== 'application/pdf') {
+    if (typeof showToast === 'function') showToast('Only PDF files are allowed.', 'warning');
+    fileInput.value = '';
+    return;
+  }
+
+  // Validate Size (1MB = 1048576 bytes)
+  if (file.size > 1048576) {
+    if (typeof showToast === 'function') showToast('File size must be 1MB or less.', 'warning');
+    fileInput.value = '';
+    return;
+  }
+  
+  if (uploadStatus) uploadStatus.innerHTML = `<span style="color: var(--primary);">Uploading...</span>`;
+
+  try {
+    if (!window.supabaseClient) throw new Error('Supabase client not initialized.');
+
+    const fileName = `${currentStudent.id}_${targetSem.replace(/\s+/g, '')}_${Date.now()}.pdf`;
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabaseClient.storage
+      .from('marksheets')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: publicUrlData } = supabaseClient.storage
+      .from('marksheets')
+      .getPublicUrl(fileName);
+
+    const publicUrl = publicUrlData.publicUrl;
+
+    // Save URL to DB
+    const allMarksheets = DB.get(StorageKeys.MARKSHEETS) || {};
+    if (!allMarksheets[currentStudent.id]) {
+      allMarksheets[currentStudent.id] = {};
+    }
+    allMarksheets[currentStudent.id][targetSem] = publicUrl;
+    DB.set(StorageKeys.MARKSHEETS, allMarksheets);
+    
+    if (typeof showToast === 'function') showToast('Marksheet uploaded successfully!', 'success');
+    
+    if (uploadStatus) {
+      uploadStatus.innerHTML = `<a href="${publicUrl}" target="_blank" style="color: var(--success); font-weight: 500; text-decoration: underline;">✅ View Uploaded Marksheet</a>`;
+    }
+  } catch (err) {
+    console.error('Upload Error:', err);
+    if (typeof showToast === 'function') showToast('Upload failed: ' + err.message, 'error');
+    if (uploadStatus) uploadStatus.innerHTML = `<span style="color: var(--danger);">Upload failed.</span>`;
+  }
+
+  fileInput.value = ''; // Reset input
 }

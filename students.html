@@ -172,6 +172,24 @@
     </div>
   </div>
 
+  <!-- View Marksheets Modal -->
+  <div id="marksheets-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Student Marksheets</h3>
+        <button class="modal-close-btn" onclick="closeModal('marksheets-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="marksheets-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('marksheets-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/storage.js"></script>
