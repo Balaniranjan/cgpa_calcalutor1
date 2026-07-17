@@ -730,7 +730,14 @@ function renderArrearsData() {
     else includeStanding = standingCount === parseInt(standingCountFilter);
 
     if (includeStanding && standingCount > 0) {
-      standingRecords.push(...studentStandingArrears);
+      standingRecords.push({
+        studentId: student.id,
+        studentName: student.name,
+        registerNumber: student.registerNumber,
+        department: student.department,
+        count: standingCount,
+        records: studentStandingArrears
+      });
     }
 
     // 2. Arrear History
@@ -757,8 +764,8 @@ function renderArrearsData() {
     standingRecords.sort((a, b) => a.studentName.localeCompare(b.studentName));
   } else if (standingSortFilter === 'reg_asc') {
     standingRecords.sort((a, b) => a.registerNumber.localeCompare(b.registerNumber));
-  } else if (standingSortFilter === 'sub_asc') {
-    standingRecords.sort((a, b) => a.subjectCode.localeCompare(b.subjectCode));
+  } else if (standingSortFilter === 'count_desc') {
+    standingRecords.sort((a, b) => b.count - a.count);
   }
 
   // Sort History Records
@@ -775,12 +782,13 @@ function renderArrearsData() {
     } else {
       standingArrearsTbody.innerHTML = standingRecords.map(r => `
         <tr>
-          <td><a href="#" onclick="viewStudentArrearHistory('${r.studentId}'); return false;" style="color: var(--primary); font-weight: 500; text-decoration: underline;">${r.studentName}</a></td>
+          <td><a href="#" onclick="viewStudentStandingArrears('${r.studentId}'); return false;" style="color: var(--primary); font-weight: 500; text-decoration: underline;">${r.studentName}</a></td>
           <td>${r.registerNumber}</td>
           <td>${r.department}</td>
-          <td><strong>${r.subjectCode}</strong></td>
-          <td>${r.subjectName}</td>
-          <td><span class="badge badge-danger">${r.grade}</span></td>
+          <td><span class="badge badge-danger">${r.count}</span></td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="viewStudentStandingArrears('${r.studentId}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">View Details</button>
+          </td>
         </tr>
       `).join('');
     }
@@ -866,4 +874,59 @@ window.deleteArrearHistoryRecord = function(studentId, recordIndex) {
     renderArrearsData();
     viewStudentArrearHistory(studentId); // Refresh modal
   }
+};
+
+window.viewStudentStandingArrears = function(studentId) {
+  const students = DB.get(StorageKeys.STUDENTS) || [];
+  const subjects = DB.get(StorageKeys.SUBJECTS) || [];
+  const allGrades = DB.get(StorageKeys.GRADES) || {};
+  
+  const student = students.find(s => s.id === studentId);
+  if (!student) return;
+
+  const studentGrades = allGrades[studentId] || {};
+  let studentStandingArrears = [];
+  
+  Object.keys(studentGrades).forEach(subId => {
+    const grade = studentGrades[subId];
+    if (grade === 'RA' || grade === 'Absent') {
+      const sub = subjects.find(s => s.id === subId);
+      if (sub) {
+        studentStandingArrears.push({
+          subjectCode: sub.code,
+          subjectName: sub.name,
+          department: sub.department,
+          grade: grade
+        });
+      }
+    }
+  });
+
+  const modal = document.getElementById('standing-modal');
+  const tbody = document.getElementById('standing-modal-tbody');
+  const title = document.getElementById('standing-modal-title');
+  
+  if (title) {
+    title.textContent = `Standing Arrears - ${student.name} (${student.registerNumber})`;
+  }
+  
+  if (studentStandingArrears.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No standing arrears found for this student.</td></tr>`;
+  } else {
+    tbody.innerHTML = studentStandingArrears.map(r => `
+      <tr>
+        <td><strong>${r.subjectCode}</strong></td>
+        <td>${r.subjectName}</td>
+        <td>${r.department}</td>
+        <td><span class="badge badge-danger">${r.grade}</span></td>
+      </tr>
+    `).join('');
+  }
+  
+  if (modal) modal.classList.add('active');
+};
+
+window.closeStandingModal = function() {
+  const modal = document.getElementById('standing-modal');
+  if (modal) modal.classList.remove('active');
 };

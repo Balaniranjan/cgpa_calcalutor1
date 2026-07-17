@@ -116,7 +116,7 @@
                 <option value="none">Sort By...</option>
                 <option value="name_asc">Name (A-Z)</option>
                 <option value="reg_asc">Register No. (Asc)</option>
-                <option value="sub_asc">Subject Code (A-Z)</option>
+                <option value="count_desc">Arrear Count (High to Low)</option>
               </select>
             </div>
           </div>
@@ -127,9 +127,8 @@
                   <th>Student Name</th>
                   <th>Register Number</th>
                   <th>Department</th>
-                  <th>Subject Code</th>
-                  <th>Subject Name</th>
-                  <th>Grade</th>
+                  <th>Total Standing Arrears</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="standing-arrears-tbody">
@@ -183,6 +182,36 @@
       </main>
     </div>
 
+  </div>
+
+  <!-- Standing Arrears Details Modal -->
+  <div id="standing-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 800px; width: 95%;">
+      <div class="modal-header">
+        <h3 id="standing-modal-title">Student Standing Arrears</h3>
+        <button class="modal-close" onclick="closeStandingModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject Code</th>
+                <th>Subject Name</th>
+                <th>Department</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <tbody id="standing-modal-tbody">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top: 1.5rem; text-align: right;">
+        <button class="btn btn-secondary" onclick="closeStandingModal()">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- Arrear History Details Modal -->
