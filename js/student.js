@@ -252,6 +252,34 @@ function saveGradesToStorage() {
   allGrades[currentStudent.id] = studentGrades;
   DB.set(StorageKeys.GRADES, allGrades);
 
+  // Arrear Tracking Logic
+  const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
+  if (!arrearHistory[currentStudent.id]) {
+    arrearHistory[currentStudent.id] = [];
+  }
+  
+  const currentTimestamp = new Date().toISOString();
+  
+  assignedSubjects.forEach(sub => {
+    const grade = studentGrades[sub.id];
+    if (grade === 'RA' || grade === 'Absent') {
+      // Only record if it's not already in the history to avoid duplicates on multiple saves
+      const exists = arrearHistory[currentStudent.id].some(h => h.subjectId === sub.id);
+      if (!exists) {
+        arrearHistory[currentStudent.id].push({
+          subjectId: sub.id,
+          subjectCode: sub.code,
+          subjectName: sub.name,
+          semester: sub.semester,
+          dateRecorded: currentTimestamp,
+          grade: grade
+        });
+      }
+    }
+  });
+  
+  DB.set(StorageKeys.ARREAR_HISTORY, arrearHistory);
+
   showToast('Grades and CGPA calculations saved successfully!', 'success');
 }
 

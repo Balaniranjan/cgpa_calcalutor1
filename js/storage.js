@@ -13,7 +13,8 @@ const StorageKeys = {
   GRADES: 'cgpa_grades',
   MARKSHEETS: 'cgpa_marksheets',
   ACTIVE_SESSION: 'cgpa_active_session',
-  THEME: 'cgpa_theme'
+  THEME: 'cgpa_theme',
+  ARREAR_HISTORY: 'cgpa_arrear_history'
 };
 
 // Grade Point Reference Map
@@ -275,6 +276,11 @@ function initSeedData() {
         'SUB105': 'A+'
       }
     });
+  }
+
+  // 8. Arrear History Seed
+  if (!DB.get(StorageKeys.ARREAR_HISTORY)) {
+    DB.setLocalOnly(StorageKeys.ARREAR_HISTORY, {});
   }
 }
 

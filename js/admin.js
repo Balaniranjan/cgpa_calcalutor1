@@ -5,7 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Guard Admin Pages
-  const adminPages = ['admin-dashboard.html', 'subjects.html', 'students.html', 'reports.html'];
+  const adminPages = ['admin-dashboard.html', 'subjects.html', 'students.html', 'reports.html', 'arrears.html'];
   const currentPage = window.location.pathname.split('/').pop();
 
   if (adminPages.includes(currentPage)) {
@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (currentPage === 'subjects.html') initSubjectManagement();
     if (currentPage === 'students.html') initStudentManagement();
     if (currentPage === 'reports.html') initReportsView();
+    if (currentPage === 'arrears.html') initArrearsView();
   }
 });
 
@@ -668,5 +669,97 @@ function populateFormDropdowns(deptId, yearId, semId) {
 
   if (semEl) {
     semEl.innerHTML = `<option value="">Select Semester</option>` + sems.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+  }
+}
+
+/* ==========================================================================
+   5. Arrears Overview
+   ========================================================================= */
+function initArrearsView() {
+  renderArrearsData();
+  document.getElementById('print-report-btn')?.addEventListener('click', () => window.print());
+  document.getElementById('arrear-count-filter')?.addEventListener('change', renderArrearsData);
+}
+
+function renderArrearsData() {
+  const students = DB.get(StorageKeys.STUDENTS) || [];
+  const subjects = DB.get(StorageKeys.SUBJECTS) || [];
+  const allGrades = DB.get(StorageKeys.GRADES) || {};
+  const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
+  const countFilter = document.getElementById('arrear-count-filter')?.value || 'all';
+
+  const standingArrearsTbody = document.getElementById('standing-arrears-tbody');
+  const arrearHistoryTbody = document.getElementById('arrear-history-tbody');
+
+  let standingArrearsHtml = '';
+  let arrearHistoryHtml = '';
+
+  students.forEach(student => {
+    // 1. Calculate Standing Arrears Count for Filter
+    const studentGrades = allGrades[student.id] || {};
+    let standingArrearsForStudent = [];
+    
+    Object.keys(studentGrades).forEach(subId => {
+      const grade = studentGrades[subId];
+      if (grade === 'RA' || grade === 'Absent') {
+        const sub = subjects.find(s => s.id === subId);
+        if (sub) {
+          standingArrearsForStudent.push({ sub, grade });
+        }
+      }
+    });
+
+    const currentCount = standingArrearsForStudent.length;
+    let includeStudent = false;
+
+    if (countFilter === 'all') {
+      includeStudent = true; // Show all students (who have arrears, checked below)
+    } else if (countFilter === '10+') {
+      includeStudent = currentCount >= 10;
+    } else {
+      includeStudent = currentCount === parseInt(countFilter);
+    }
+
+    if (includeStudent) {
+      // 1. Standing Arrears HTML
+      standingArrearsForStudent.forEach(arrear => {
+        standingArrearsHtml += `
+          <tr>
+            <td>${student.name}</td>
+            <td>${student.registerNumber}</td>
+            <td>${student.department}</td>
+            <td><strong>${arrear.sub.code}</strong></td>
+            <td>${arrear.sub.name}</td>
+            <td><span class="badge badge-danger">${arrear.grade}</span></td>
+          </tr>
+        `;
+      });
+
+      // 2. Arrear History HTML
+      const history = arrearHistory[student.id] || [];
+      history.forEach(record => {
+        const dateObj = new Date(record.dateRecorded);
+        const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString() : record.dateRecorded;
+        arrearHistoryHtml += `
+          <tr>
+            <td>${student.name}</td>
+            <td>${student.registerNumber}</td>
+            <td><strong>${record.subjectCode}</strong></td>
+            <td>${record.subjectName}</td>
+            <td>${record.semester}</td>
+            <td>${dateStr}</td>
+            <td><span class="badge badge-warning">${record.grade}</span></td>
+          </tr>
+        `;
+      });
+    }
+  });
+
+  if (standingArrearsTbody) {
+    standingArrearsTbody.innerHTML = standingArrearsHtml || `<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No standing arrears found matching criteria.</td></tr>`;
+  }
+
+  if (arrearHistoryTbody) {
+    arrearHistoryTbody.innerHTML = arrearHistoryHtml || `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No arrear history recorded yet for matching criteria.</td></tr>`;
   }
 }
