@@ -87,19 +87,6 @@
         <div class="section-header">
           <h2>Student Arrears Overview</h2>
           <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <select id="arrear-count-filter" class="form-control" style="width: auto; display: inline-block;">
-              <option value="all">Any Number of Arrears</option>
-              <option value="1">1 Arrear</option>
-              <option value="2">2 Arrears</option>
-              <option value="3">3 Arrears</option>
-              <option value="4">4 Arrears</option>
-              <option value="5">5 Arrears</option>
-              <option value="6">6 Arrears</option>
-              <option value="7">7 Arrears</option>
-              <option value="8">8 Arrears</option>
-              <option value="9">9 Arrears</option>
-              <option value="10+">10+ Arrears</option>
-            </select>
             <button id="print-report-btn" class="btn btn-primary btn-sm">
               <svg viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
               Print / Save PDF
@@ -109,7 +96,30 @@
 
         <!-- Standing Arrears Section -->
         <div style="margin-bottom: 2rem;">
-          <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--text-primary);">⚠️ Standing Arrears</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 style="font-size: 1.05rem; color: var(--text-primary); margin: 0;">⚠️ Standing Arrears</h3>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="standing-count-filter" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+                <option value="all">Any Number of Arrears</option>
+                <option value="1">1 Arrear</option>
+                <option value="2">2 Arrears</option>
+                <option value="3">3 Arrears</option>
+                <option value="4">4 Arrears</option>
+                <option value="5">5 Arrears</option>
+                <option value="6">6 Arrears</option>
+                <option value="7">7 Arrears</option>
+                <option value="8">8 Arrears</option>
+                <option value="9">9 Arrears</option>
+                <option value="10+">10+ Arrears</option>
+              </select>
+              <select id="standing-sort-filter" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+                <option value="none">Sort By...</option>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="reg_asc">Register No. (Asc)</option>
+                <option value="sub_asc">Subject Code (A-Z)</option>
+              </select>
+            </div>
+          </div>
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -131,7 +141,30 @@
 
         <!-- Arrear History Table -->
         <div>
-          <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--text-primary);">🕒 Arrear History</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 style="font-size: 1.05rem; color: var(--text-primary); margin: 0;">🕒 Arrear History</h3>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="history-count-filter" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+                <option value="all">Any Number of Historical Arrears</option>
+                <option value="1">1 Arrear</option>
+                <option value="2">2 Arrears</option>
+                <option value="3">3 Arrears</option>
+                <option value="4">4 Arrears</option>
+                <option value="5">5 Arrears</option>
+                <option value="6">6 Arrears</option>
+                <option value="7">7 Arrears</option>
+                <option value="8">8 Arrears</option>
+                <option value="9">9 Arrears</option>
+                <option value="10+">10+ Arrears</option>
+              </select>
+              <select id="history-sort-filter" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+                <option value="date_desc">Date (Newest First)</option>
+                <option value="date_asc">Date (Oldest First)</option>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="sub_asc">Subject Code (A-Z)</option>
+              </select>
+            </div>
+          </div>
           <div class="table-responsive">
             <table class="data-table">
               <thead>
@@ -143,6 +176,7 @@
                   <th>Semester</th>
                   <th>Date Recorded</th>
                   <th>Grade</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="arrear-history-tbody">

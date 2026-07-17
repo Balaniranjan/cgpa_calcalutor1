@@ -678,7 +678,10 @@ function populateFormDropdowns(deptId, yearId, semId) {
 function initArrearsView() {
   renderArrearsData();
   document.getElementById('print-report-btn')?.addEventListener('click', () => window.print());
-  document.getElementById('arrear-count-filter')?.addEventListener('change', renderArrearsData);
+  document.getElementById('standing-count-filter')?.addEventListener('change', renderArrearsData);
+  document.getElementById('standing-sort-filter')?.addEventListener('change', renderArrearsData);
+  document.getElementById('history-count-filter')?.addEventListener('change', renderArrearsData);
+  document.getElementById('history-sort-filter')?.addEventListener('change', renderArrearsData);
 }
 
 function renderArrearsData() {
@@ -686,80 +689,151 @@ function renderArrearsData() {
   const subjects = DB.get(StorageKeys.SUBJECTS) || [];
   const allGrades = DB.get(StorageKeys.GRADES) || {};
   const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
-  const countFilter = document.getElementById('arrear-count-filter')?.value || 'all';
+  
+  const standingCountFilter = document.getElementById('standing-count-filter')?.value || 'all';
+  const standingSortFilter = document.getElementById('standing-sort-filter')?.value || 'none';
+  const historyCountFilter = document.getElementById('history-count-filter')?.value || 'all';
+  const historySortFilter = document.getElementById('history-sort-filter')?.value || 'date_desc';
 
   const standingArrearsTbody = document.getElementById('standing-arrears-tbody');
   const arrearHistoryTbody = document.getElementById('arrear-history-tbody');
 
-  let standingArrearsHtml = '';
-  let arrearHistoryHtml = '';
+  let standingRecords = [];
+  let historyRecords = [];
 
   students.forEach(student => {
-    // 1. Calculate Standing Arrears Count for Filter
+    // 1. Standing Arrears
     const studentGrades = allGrades[student.id] || {};
-    let standingArrearsForStudent = [];
-    
+    let studentStandingArrears = [];
     Object.keys(studentGrades).forEach(subId => {
       const grade = studentGrades[subId];
       if (grade === 'RA' || grade === 'Absent') {
         const sub = subjects.find(s => s.id === subId);
         if (sub) {
-          standingArrearsForStudent.push({ sub, grade });
+          studentStandingArrears.push({
+            studentId: student.id,
+            studentName: student.name,
+            registerNumber: student.registerNumber,
+            department: student.department,
+            subjectCode: sub.code,
+            subjectName: sub.name,
+            grade: grade
+          });
         }
       }
     });
 
-    const currentCount = standingArrearsForStudent.length;
-    let includeStudent = false;
+    const standingCount = studentStandingArrears.length;
+    let includeStanding = false;
+    if (standingCountFilter === 'all') includeStanding = true;
+    else if (standingCountFilter === '10+') includeStanding = standingCount >= 10;
+    else includeStanding = standingCount === parseInt(standingCountFilter);
 
-    if (countFilter === 'all') {
-      includeStudent = true; // Show all students (who have arrears, checked below)
-    } else if (countFilter === '10+') {
-      includeStudent = currentCount >= 10;
-    } else {
-      includeStudent = currentCount === parseInt(countFilter);
+    if (includeStanding && standingCount > 0) {
+      standingRecords.push(...studentStandingArrears);
     }
 
-    if (includeStudent) {
-      // 1. Standing Arrears HTML
-      standingArrearsForStudent.forEach(arrear => {
-        standingArrearsHtml += `
-          <tr>
-            <td>${student.name}</td>
-            <td>${student.registerNumber}</td>
-            <td>${student.department}</td>
-            <td><strong>${arrear.sub.code}</strong></td>
-            <td>${arrear.sub.name}</td>
-            <td><span class="badge badge-danger">${arrear.grade}</span></td>
-          </tr>
-        `;
-      });
+    // 2. Arrear History
+    const studentHistory = arrearHistory[student.id] || [];
+    const historyCount = studentHistory.length;
+    let includeHistory = false;
+    if (historyCountFilter === 'all') includeHistory = true;
+    else if (historyCountFilter === '10+') includeHistory = historyCount >= 10;
+    else includeHistory = historyCount === parseInt(historyCountFilter);
 
-      // 2. Arrear History HTML
-      const history = arrearHistory[student.id] || [];
-      history.forEach(record => {
-        const dateObj = new Date(record.dateRecorded);
-        const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString() : record.dateRecorded;
-        arrearHistoryHtml += `
-          <tr>
-            <td>${student.name}</td>
-            <td>${student.registerNumber}</td>
-            <td><strong>${record.subjectCode}</strong></td>
-            <td>${record.subjectName}</td>
-            <td>${record.semester}</td>
-            <td>${dateStr}</td>
-            <td><span class="badge badge-warning">${record.grade}</span></td>
-          </tr>
-        `;
+    if (includeHistory && historyCount > 0) {
+      studentHistory.forEach((record, index) => {
+        historyRecords.push({
+          studentId: student.id,
+          studentName: student.name,
+          registerNumber: student.registerNumber,
+          subjectCode: record.subjectCode,
+          subjectName: record.subjectName,
+          semester: record.semester,
+          dateRecorded: record.dateRecorded,
+          grade: record.grade,
+          recordIndex: index
+        });
       });
     }
   });
 
-  if (standingArrearsTbody) {
-    standingArrearsTbody.innerHTML = standingArrearsHtml || `<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No standing arrears found matching criteria.</td></tr>`;
+  // Sort Standing Records
+  if (standingSortFilter === 'name_asc') {
+    standingRecords.sort((a, b) => a.studentName.localeCompare(b.studentName));
+  } else if (standingSortFilter === 'reg_asc') {
+    standingRecords.sort((a, b) => a.registerNumber.localeCompare(b.registerNumber));
+  } else if (standingSortFilter === 'sub_asc') {
+    standingRecords.sort((a, b) => a.subjectCode.localeCompare(b.subjectCode));
   }
 
+  // Sort History Records
+  if (historySortFilter === 'date_desc') {
+    historyRecords.sort((a, b) => new Date(b.dateRecorded) - new Date(a.dateRecorded));
+  } else if (historySortFilter === 'date_asc') {
+    historyRecords.sort((a, b) => new Date(a.dateRecorded) - new Date(b.dateRecorded));
+  } else if (historySortFilter === 'name_asc') {
+    historyRecords.sort((a, b) => a.studentName.localeCompare(b.studentName));
+  } else if (historySortFilter === 'sub_asc') {
+    historyRecords.sort((a, b) => a.subjectCode.localeCompare(b.subjectCode));
+  }
+
+  // Render Standing
+  if (standingArrearsTbody) {
+    if (standingRecords.length === 0) {
+      standingArrearsTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No standing arrears found matching criteria.</td></tr>`;
+    } else {
+      standingArrearsTbody.innerHTML = standingRecords.map(r => `
+        <tr>
+          <td>${r.studentName}</td>
+          <td>${r.registerNumber}</td>
+          <td>${r.department}</td>
+          <td><strong>${r.subjectCode}</strong></td>
+          <td>${r.subjectName}</td>
+          <td><span class="badge badge-danger">${r.grade}</span></td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Render History
   if (arrearHistoryTbody) {
-    arrearHistoryTbody.innerHTML = arrearHistoryHtml || `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No arrear history recorded yet for matching criteria.</td></tr>`;
+    if (historyRecords.length === 0) {
+      arrearHistoryTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No arrear history recorded yet for matching criteria.</td></tr>`;
+    } else {
+      arrearHistoryTbody.innerHTML = historyRecords.map(r => {
+        const dateObj = new Date(r.dateRecorded);
+        const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString() : r.dateRecorded;
+        return `
+          <tr>
+            <td>${r.studentName}</td>
+            <td>${r.registerNumber}</td>
+            <td><strong>${r.subjectCode}</strong></td>
+            <td>${r.subjectName}</td>
+            <td>${r.semester}</td>
+            <td>${dateStr}</td>
+            <td><span class="badge badge-warning">${r.grade}</span></td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteArrearHistoryRecord('${r.studentId}', ${r.recordIndex})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
   }
 }
+
+window.deleteArrearHistoryRecord = function(studentId, recordIndex) {
+  if (!confirm('Are you sure you want to delete this historical arrear record?')) return;
+  
+  const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
+  if (arrearHistory[studentId] && arrearHistory[studentId].length > recordIndex) {
+    arrearHistory[studentId].splice(recordIndex, 1);
+    DB.set(StorageKeys.ARREAR_HISTORY, arrearHistory);
+    
+    if (typeof showToast === 'function') {
+      showToast('Historical arrear record deleted successfully.', 'success');
+    }
+    renderArrearsData();
+  }
+};
