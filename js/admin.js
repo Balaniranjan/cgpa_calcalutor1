@@ -775,7 +775,7 @@ function renderArrearsData() {
     } else {
       standingArrearsTbody.innerHTML = standingRecords.map(r => `
         <tr>
-          <td>${r.studentName}</td>
+          <td><a href="#" onclick="viewStudentArrearHistory('${r.studentId}'); return false;" style="color: var(--primary); font-weight: 500; text-decoration: underline;">${r.studentName}</a></td>
           <td>${r.registerNumber}</td>
           <td>${r.department}</td>
           <td><strong>${r.subjectCode}</strong></td>
