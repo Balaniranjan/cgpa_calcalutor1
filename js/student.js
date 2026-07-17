@@ -285,9 +285,16 @@ function saveGradesToStorage() {
 
 function resetGrades() {
   if (confirm('Are you sure you want to reset all grades for this semester?')) {
-    studentGrades = {};
     const allGrades = DB.get(StorageKeys.GRADES) || {};
-    delete allGrades[currentStudent.id];
+    if (!allGrades[currentStudent.id]) {
+      allGrades[currentStudent.id] = {};
+    }
+
+    assignedSubjects.forEach(sub => {
+      delete studentGrades[sub.id];
+      delete allGrades[currentStudent.id][sub.id];
+    });
+    
     DB.set(StorageKeys.GRADES, allGrades);
 
     renderSubjectGradeTable();

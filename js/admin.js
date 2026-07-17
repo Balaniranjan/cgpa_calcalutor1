@@ -277,6 +277,30 @@ async function confirmDeleteSubject(subjectId) {
     let subjects = DB.get(StorageKeys.SUBJECTS) || [];
     subjects = subjects.filter(s => s.id !== subjectId);
     DB.set(StorageKeys.SUBJECTS, subjects);
+
+    // Clean up grades
+    const allGrades = DB.get(StorageKeys.GRADES) || {};
+    let gradesUpdated = false;
+    Object.keys(allGrades).forEach(studentId => {
+      if (allGrades[studentId][subjectId] !== undefined) {
+        delete allGrades[studentId][subjectId];
+        gradesUpdated = true;
+      }
+    });
+    if (gradesUpdated) DB.set(StorageKeys.GRADES, allGrades);
+
+    // Clean up arrear history
+    const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
+    let historyUpdated = false;
+    Object.keys(arrearHistory).forEach(studentId => {
+      const initialLength = arrearHistory[studentId].length;
+      arrearHistory[studentId] = arrearHistory[studentId].filter(r => r.subjectId !== subjectId);
+      if (arrearHistory[studentId].length !== initialLength) {
+        historyUpdated = true;
+      }
+    });
+    if (historyUpdated) DB.set(StorageKeys.ARREAR_HISTORY, arrearHistory);
+
     showToast('Subject deleted successfully.', 'success');
     renderSubjectTable();
   }
@@ -453,6 +477,16 @@ async function confirmDeleteStudent(studentId) {
     const allGrades = DB.get(StorageKeys.GRADES) || {};
     delete allGrades[studentId];
     DB.set(StorageKeys.GRADES, allGrades);
+
+    // Clean up arrear history
+    const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
+    delete arrearHistory[studentId];
+    DB.set(StorageKeys.ARREAR_HISTORY, arrearHistory);
+
+    // Clean up marksheets
+    const allMarksheets = DB.get(StorageKeys.MARKSHEETS) || {};
+    delete allMarksheets[studentId];
+    DB.set(StorageKeys.MARKSHEETS, allMarksheets);
 
     showToast('Student account deleted.', 'success');
     renderStudentTable();
