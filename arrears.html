@@ -158,10 +158,8 @@
                 <option value="10+">10+ Arrears</option>
               </select>
               <select id="history-sort-filter" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
-                <option value="date_desc">Date (Newest First)</option>
-                <option value="date_asc">Date (Oldest First)</option>
                 <option value="name_asc">Name (A-Z)</option>
-                <option value="sub_asc">Subject Code (A-Z)</option>
+                <option value="count_desc">Arrear Count (High to Low)</option>
               </select>
             </div>
           </div>
@@ -171,11 +169,7 @@
                 <tr>
                   <th>Student Name</th>
                   <th>Register No.</th>
-                  <th>Subject Code</th>
-                  <th>Subject Name</th>
-                  <th>Semester</th>
-                  <th>Date Recorded</th>
-                  <th>Grade</th>
+                  <th>Total Historical Arrears</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -189,6 +183,38 @@
       </main>
     </div>
 
+  </div>
+
+  <!-- Arrear History Details Modal -->
+  <div id="history-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 800px; width: 95%;">
+      <div class="modal-header">
+        <h3 id="history-modal-title">Student Arrear History</h3>
+        <button class="modal-close" onclick="closeHistoryModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject Code</th>
+                <th>Subject Name</th>
+                <th>Semester</th>
+                <th>Date Recorded</th>
+                <th>Grade</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-modal-tbody">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top: 1.5rem; text-align: right;">
+        <button class="btn btn-secondary" onclick="closeHistoryModal()">Close</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

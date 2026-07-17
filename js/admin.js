@@ -742,18 +742,12 @@ function renderArrearsData() {
     else includeHistory = historyCount === parseInt(historyCountFilter);
 
     if (includeHistory && historyCount > 0) {
-      studentHistory.forEach((record, index) => {
-        historyRecords.push({
-          studentId: student.id,
-          studentName: student.name,
-          registerNumber: student.registerNumber,
-          subjectCode: record.subjectCode,
-          subjectName: record.subjectName,
-          semester: record.semester,
-          dateRecorded: record.dateRecorded,
-          grade: record.grade,
-          recordIndex: index
-        });
+      historyRecords.push({
+        studentId: student.id,
+        studentName: student.name,
+        registerNumber: student.registerNumber,
+        count: historyCount,
+        records: studentHistory.map((r, i) => ({ ...r, originalIndex: i }))
       });
     }
   });
@@ -768,14 +762,10 @@ function renderArrearsData() {
   }
 
   // Sort History Records
-  if (historySortFilter === 'date_desc') {
-    historyRecords.sort((a, b) => new Date(b.dateRecorded) - new Date(a.dateRecorded));
-  } else if (historySortFilter === 'date_asc') {
-    historyRecords.sort((a, b) => new Date(a.dateRecorded) - new Date(b.dateRecorded));
-  } else if (historySortFilter === 'name_asc') {
+  if (historySortFilter === 'name_asc') {
     historyRecords.sort((a, b) => a.studentName.localeCompare(b.studentName));
-  } else if (historySortFilter === 'sub_asc') {
-    historyRecords.sort((a, b) => a.subjectCode.localeCompare(b.subjectCode));
+  } else if (historySortFilter === 'count_desc') {
+    historyRecords.sort((a, b) => b.count - a.count);
   }
 
   // Render Standing
@@ -799,29 +789,67 @@ function renderArrearsData() {
   // Render History
   if (arrearHistoryTbody) {
     if (historyRecords.length === 0) {
-      arrearHistoryTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No arrear history recorded yet for matching criteria.</td></tr>`;
+      arrearHistoryTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No arrear history recorded yet for matching criteria.</td></tr>`;
     } else {
-      arrearHistoryTbody.innerHTML = historyRecords.map(r => {
-        const dateObj = new Date(r.dateRecorded);
-        const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString() : r.dateRecorded;
-        return `
-          <tr>
-            <td>${r.studentName}</td>
-            <td>${r.registerNumber}</td>
-            <td><strong>${r.subjectCode}</strong></td>
-            <td>${r.subjectName}</td>
-            <td>${r.semester}</td>
-            <td>${dateStr}</td>
-            <td><span class="badge badge-warning">${r.grade}</span></td>
-            <td>
-              <button class="btn btn-sm btn-danger" onclick="deleteArrearHistoryRecord('${r.studentId}', ${r.recordIndex})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
+      arrearHistoryTbody.innerHTML = historyRecords.map(r => `
+        <tr>
+          <td><a href="#" onclick="viewStudentArrearHistory('${r.studentId}'); return false;" style="color: var(--primary); font-weight: 500; text-decoration: underline;">${r.studentName}</a></td>
+          <td>${r.registerNumber}</td>
+          <td><span class="badge badge-warning">${r.count}</span></td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="viewStudentArrearHistory('${r.studentId}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">View Details</button>
+          </td>
+        </tr>
+      `).join('');
     }
   }
 }
+
+window.viewStudentArrearHistory = function(studentId) {
+  const arrearHistory = DB.get(StorageKeys.ARREAR_HISTORY) || {};
+  let studentHistory = arrearHistory[studentId] || [];
+  
+  const modal = document.getElementById('history-modal');
+  const tbody = document.getElementById('history-modal-tbody');
+  const title = document.getElementById('history-modal-title');
+  
+  if (title) {
+    const students = DB.get(StorageKeys.STUDENTS) || [];
+    const st = students.find(s => s.id === studentId);
+    if (st) title.textContent = `Arrear History - ${st.name} (${st.registerNumber})`;
+  }
+  
+  if (studentHistory.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 1.5rem;">No historical arrears found for this student.</td></tr>`;
+  } else {
+    const historyWithIndex = studentHistory.map((r, i) => ({ ...r, originalIndex: i }));
+    historyWithIndex.sort((a, b) => new Date(b.dateRecorded) - new Date(a.dateRecorded));
+    
+    tbody.innerHTML = historyWithIndex.map(r => {
+      const dateObj = new Date(r.dateRecorded);
+      const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString() : r.dateRecorded;
+      return `
+        <tr>
+          <td><strong>${r.subjectCode}</strong></td>
+          <td>${r.subjectName}</td>
+          <td>${r.semester}</td>
+          <td>${dateStr}</td>
+          <td><span class="badge badge-warning">${r.grade}</span></td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteArrearHistoryRecord('${studentId}', ${r.originalIndex})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  if (modal) modal.classList.add('active');
+};
+
+window.closeHistoryModal = function() {
+  const modal = document.getElementById('history-modal');
+  if (modal) modal.classList.remove('active');
+};
 
 window.deleteArrearHistoryRecord = function(studentId, recordIndex) {
   if (!confirm('Are you sure you want to delete this historical arrear record?')) return;
@@ -834,6 +862,8 @@ window.deleteArrearHistoryRecord = function(studentId, recordIndex) {
     if (typeof showToast === 'function') {
       showToast('Historical arrear record deleted successfully.', 'success');
     }
+    
     renderArrearsData();
+    viewStudentArrearHistory(studentId); // Refresh modal
   }
 };
