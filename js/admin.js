@@ -682,6 +682,9 @@ function initArrearsView() {
   document.getElementById('standing-sort-filter')?.addEventListener('change', renderArrearsData);
   document.getElementById('history-count-filter')?.addEventListener('change', renderArrearsData);
   document.getElementById('history-sort-filter')?.addEventListener('change', renderArrearsData);
+
+  document.getElementById('export-standing-btn')?.addEventListener('click', exportStandingCSV);
+  document.getElementById('export-history-btn')?.addEventListener('click', exportHistoryCSV);
 }
 
 function renderArrearsData() {
@@ -774,6 +777,9 @@ function renderArrearsData() {
   } else if (historySortFilter === 'count_desc') {
     historyRecords.sort((a, b) => b.count - a.count);
   }
+
+  window.currentStandingRecords = standingRecords;
+  window.currentHistoryRecords = historyRecords;
 
   // Render Standing
   if (standingArrearsTbody) {
@@ -930,3 +936,51 @@ window.closeStandingModal = function() {
   const modal = document.getElementById('standing-modal');
   if (modal) modal.classList.remove('active');
 };
+
+window.exportStandingCSV = function() {
+  const records = window.currentStandingRecords || [];
+  if (records.length === 0) {
+    if (typeof showToast === 'function') showToast('No standing arrears to export.', 'warning');
+    return;
+  }
+  
+  let csvContent = "Register Number,Student Name,Department,Total Standing Arrears,Subject Code,Subject Name,Grade\n";
+  records.forEach(r => {
+    r.records.forEach(sub => {
+      csvContent += `"${r.registerNumber}","${r.studentName}","${r.department}",${r.count},"${sub.subjectCode}","${sub.subjectName}","${sub.grade}"\n`;
+    });
+  });
+
+  downloadArrearsCSV(csvContent, 'Standing_Arrears_Report');
+};
+
+window.exportHistoryCSV = function() {
+  const records = window.currentHistoryRecords || [];
+  if (records.length === 0) {
+    if (typeof showToast === 'function') showToast('No arrear history to export.', 'warning');
+    return;
+  }
+  
+  let csvContent = "Register Number,Student Name,Total Historical Arrears,Subject Code,Subject Name,Semester,Date Recorded,Grade\n";
+  records.forEach(r => {
+    r.records.forEach(sub => {
+      const dateObj = new Date(sub.dateRecorded);
+      const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString() : sub.dateRecorded;
+      csvContent += `"${r.registerNumber}","${r.studentName}",${r.count},"${sub.subjectCode}","${sub.subjectName}","${sub.semester}","${dateStr}","${sub.grade}"\n`;
+    });
+  });
+
+  downloadArrearsCSV(csvContent, 'Arrear_History_Report');
+};
+
+function downloadArrearsCSV(csvContent, filenamePrefix) {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `${filenamePrefix}_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  if (typeof showToast === 'function') showToast('Excel/CSV report exported successfully!', 'success');
+}
